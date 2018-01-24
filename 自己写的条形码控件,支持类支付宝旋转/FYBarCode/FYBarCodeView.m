@@ -192,7 +192,7 @@ void ProviderReleaseData (void *info, const void *data, size_t size){
 - (UIView *)bgView{
     if (!_bgView) {
         _bgView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, ScreenWidth, ScreenHeight)];
-        _bgView.backgroundColor = [UIColor blueColor];
+        _bgView.backgroundColor = [UIColor whiteColor];
         @weakify(self);
         [_bgView addTapActionWithBlock:^(UIGestureRecognizer *gestureRecoginzer) {
             @strongify(self);

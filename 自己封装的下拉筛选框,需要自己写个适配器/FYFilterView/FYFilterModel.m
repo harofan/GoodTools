@@ -9,10 +9,11 @@
 #import "FYFilterModel.h"
 
 @implementation FYFilterModel
-- (instancetype)initWithShowLabelStr:(NSString *)showLabelStr answerValue:(NSString *)answerValue{
+- (instancetype)initWithShowLabelStr:(NSString *)showLabelStr answerValue:(NSString *)answerValue isSelected:(BOOL)isSelected{
     if (self = [super init]) {
         self.showLabelStr = showLabelStr;
         self.answerValue = answerValue;
+        self.isSelected = isSelected;
     }
     return self;
 }

@@ -23,6 +23,7 @@
 - (void)setCellModel:(FYFilterModel *)cellModel{
     _cellModel = cellModel;
     _menuTitleLabel.text = cellModel.showLabelStr;
+    _menuTitleLabel.textColor = cellModel.isSelected ? [UIColor colorWithHexString:@"3FA9C4"] : [UIColor colorWithHexString:@"333333"];
 }
 
 @end

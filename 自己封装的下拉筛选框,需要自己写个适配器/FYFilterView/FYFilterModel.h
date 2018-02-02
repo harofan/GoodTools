@@ -20,7 +20,11 @@
 @property (copy, nonatomic) NSString *answerValue;
 
 /**
+ 是否选中
+ */
+@property (assign, nonatomic) BOOL isSelected;
+/**
  初始化
  */
-- (instancetype)initWithShowLabelStr:(NSString *)showLabelStr answerValue:(NSString *)answerValue;
+- (instancetype)initWithShowLabelStr:(NSString *)showLabelStr answerValue:(NSString *)answerValue isSelected:(BOOL)isSelected;
 @end

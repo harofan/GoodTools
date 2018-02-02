@@ -6,10 +6,12 @@
 //  Copyright © 2018年 luming. All rights reserved.
 //
 
-#import "FYFilerView.h"
+#import "FYFilterView.h"
 #import "FYFilterTableViewCell.h"
 #import "FYFilterModel.h"
-@interface FYFilerView()<UITableViewDelegate, UITableViewDataSource>
+#import "FYFilterButtonView.h"
+
+@interface FYFilterView()<UITableViewDelegate, UITableViewDataSource>
 
 /**
  上触摸容器
@@ -29,9 +31,19 @@
 /**
  标题label数组
  */
-@property (copy, nonatomic) NSMutableArray *menuTitleLabelArray;
+@property (strong, nonatomic) NSMutableArray <FYFilterButtonView *> *menuViewArray;
+
+///**
+// 三角array
+// */
+//@property (strong, nonatomic) NSMutableArray *imageArray;
+//
+///**
+// 底部线
+// */
+//@property (strong, nonatomic) NSMutableArray *bottomLineArray;
 @end
-@implementation FYFilerView{
+@implementation FYFilterView{
     NSInteger _currentSelectIndex;//当前选中的弹窗下标
 }
 
@@ -41,6 +53,7 @@
         self.showStrArray = showStrArray;
         self.answerStrArray = answerStrArray;
         [self initButtonView];
+        
     }
     return self;
 }
@@ -55,15 +68,11 @@
     //配置信息
     const NSInteger itemCount = self.showStrArray.count;
     const CGFloat itemBGViewWidth = ScreenWidth/itemCount;
-    const CGFloat labelFont = 16;
-    UIColor *labelColor = [UIColor blackColor];
-    
     
     for (int i = 0; i < itemCount; i ++) {
         
         //容器
         UIView *bgView = [UIView new];
-        bgView.backgroundColor = [UIColor greenColor];
         [self addSubview:bgView];
         CGFloat itemX = i * itemBGViewWidth;
         [bgView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -72,17 +81,16 @@
             make.width.equalTo(@(itemBGViewWidth));
         }];
         
-        //文字
-        UILabel *showLabel = [UILabel new];
-        showLabel.text = self.showStrArray[i];
-        showLabel.font = [UIFont systemFontOfSize:labelFont];
-        showLabel.textColor = labelColor;
-        [bgView addSubview:showLabel];
-        [showLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-           make.centerX.equalTo(bgView.mas_centerX);
-           make.centerY.equalTo(bgView.mas_centerY);
+        //菜单
+        FYFilterButtonView *filterMenuView = [[NSBundle mainBundle] loadNibNamed:@"FYFilterButtonView" owner:self options:nil].lastObject;
+        filterMenuView.menuTitleStr = self.showStrArray[i];
+        [bgView addSubview:filterMenuView];
+        [filterMenuView mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.edges.equalTo(@0);
         }];
-        [self.menuTitleLabelArray addObject:showLabel];
+        filterMenuView.isSelected = NO;
+        filterMenuView.tag = i;
+        [self.menuViewArray addObject:filterMenuView];
         
         //触发按钮
         UIButton *button = [UIButton new];
@@ -93,6 +101,7 @@
         button.tag = i;
         [button addTarget:self action:@selector(didClickFilterButton:) forControlEvents:UIControlEventTouchUpInside];
     }
+    
 }
 
 - (void)showSelectTableViewWithIndex:(NSInteger)index{
@@ -102,14 +111,15 @@
     //上部分遮罩
     [rootWindow addSubview:self.topTapBGView];
     //iphoneX是➕84
-    CGFloat topBGVeiwBottom = self.frame.origin.y + self.frame.size.height + 64;
+    CGFloat topBGVeiwBottom = self.frame.origin.y + 64;
     CGFloat bgViewWidth = self.frame.size.width;
     self.topTapBGView.frame = CGRectMake(0, 0, bgViewWidth, topBGVeiwBottom);
-    CGFloat viewHeight = 44 *self.dataArray[_currentSelectIndex].count;
+    CGFloat viewHeight = 48 *self.dataArray[_currentSelectIndex].count;
 
     //下部分遮罩
+    CGFloat bottomViewStartY = topBGVeiwBottom + self.frame.size.height;
     [rootWindow addSubview:self.bottomTapView];
-    self.bottomTapView.frame = CGRectMake(0, topBGVeiwBottom, bgViewWidth, ScreenHeight - topBGVeiwBottom);
+    self.bottomTapView.frame = CGRectMake(0, bottomViewStartY, bgViewWidth, ScreenHeight - bottomViewStartY);
     
     //展示
     self.menuTableView.frame = CGRectMake(0, 0 - viewHeight, bgViewWidth, viewHeight);
@@ -139,9 +149,18 @@
 - (void)p_selectFilterMenu:(NSInteger)selectIndex{
     
     [self hideSelectTableView];
+    
+    //先全部取消选中
+    NSArray *filterModelArray = self.dataArray[_currentSelectIndex];
+    for (FYFilterModel *filterModel in filterModelArray) {
+        filterModel.isSelected = NO;
+    }
     FYFilterModel *selectModel = self.dataArray[_currentSelectIndex][selectIndex];
-    UILabel *selectMenuLabel = self.menuTitleLabelArray[_currentSelectIndex];
-    selectMenuLabel.text = selectModel.showLabelStr;
+    selectModel.isSelected = YES;
+    
+    //给标题赋值
+    FYFilterButtonView *buttonView = self.menuViewArray[_currentSelectIndex];
+    buttonView.menuTitleStr = selectModel.showLabelStr;
     
     //更改传出数据源
     FYFilterModel *answerModel = self.answerStrArray[_currentSelectIndex];
@@ -156,14 +175,26 @@
 #pragma mark - target action
 - (void)didClickFilterButton:(UIButton *)filterButton{
     NSLog(@"点击了%ld",filterButton.tag);
+    
+    [self hideSelectTableView];
+    
     //记录弹窗坐标
     _currentSelectIndex = filterButton.tag;
+    
+    //改变选中状态
+    for (FYFilterButtonView *buttonView in self.menuViewArray) {
+        if (buttonView.tag != _currentSelectIndex) {
+            buttonView.isSelected = NO;
+        }else{
+            buttonView.isSelected = YES;
+        }
+    }
     [self showSelectTableViewWithIndex:filterButton.tag];
 }
 
 #pragma mark - delegate
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return 44.f;
+    return 48.f;
 }
 #pragma mark - datasource
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
@@ -222,12 +253,12 @@
     }
     return _bottomTapView;
 }
-
-- (NSMutableArray *)menuTitleLabelArray{
-    if (!_menuTitleLabelArray) {
-        _menuTitleLabelArray = [NSMutableArray array];
+- (NSMutableArray<FYFilterButtonView *> *)menuViewArray{
+    if (!_menuViewArray) {
+        _menuViewArray = [NSMutableArray array];
     }
-    return _menuTitleLabelArray;
+    return _menuViewArray;
 }
+
 @end
 

@@ -9,12 +9,12 @@
 #import <UIKit/UIKit.h>
 
 @class FYFilterModel;
-@class FYFilerView;
+@class FYFilterView;
 @protocol FYFilterViewDelegate <NSObject>
 @optional
-- (void)fyFilterView:(FYFilerView *)filterView selectIndex:(NSInteger)selectIndex selectArray:(NSArray<FYFilterModel *> *)selectArray;
+- (void)fyFilterView:(FYFilterView *)filterView selectIndex:(NSInteger)selectIndex selectArray:(NSArray<FYFilterModel *> *)selectArray;
 @end
-@interface FYFilerView : UIView
+@interface FYFilterView : UIView
 
 /**
  弹窗的数据源
